@@ -8,37 +8,58 @@ public class PlayerController : MonoBehaviour
 
 	public float moveSpeed;
 
-	private float multiplier;
-	private Vector3 curDir, prevDir;
+	private Vector3 curDir, curRot;
+	private Vector2 mouseRot;
+	private int moveForward, moveBackward, moveLeft, moveRight;
 
 	// Use this for initialization
 	void Awake ()
 	{
-		UpdateDirs();
-		multiplier = 1.0f;
+		moveForward = 0;
+		moveBackward = 0;
+		moveLeft = 0;
+		moveRight = 0;
+		curDir = mainCam.transform.forward;
+		curRot = mainCam.transform.eulerAngles;
+		mouseRot = new Vector2 ();
 	}
 
-	void UpdateDirs()
+	void FixedUpdate()
 	{
-		prevDir = curDir;
-		curDir = Vector3.Scale(mainCam.transform.forward, new Vector3(1f, 0, 1f));
-		if (Vector3.Angle (curDir, prevDir) >= 3f)
-			multiplier = 1.0f;
-		else
-			multiplier += 0.1f;
+		curRot = mainCam.transform.eulerAngles;
+		curDir = mainCam.transform.forward;
+		Vector3 rotset = new Vector3 (mouseRot.x, mouseRot.y, 0);
+		Vector3 fOffset = curDir * (moveForward - moveBackward);
+		Vector3 sOffset = mainCam.transform.right * (moveRight - moveLeft);
+		Vector3 offset = (fOffset + sOffset).normalized * moveSpeed;
+
+		mainCam.transform.eulerAngles = curRot + rotset;
+		transform.position += offset;
 	}
 
 	// Update is called once per frame
 	void Update ()
 	{
-		if (Input.GetButton ("Fire1")) {
-			UpdateDirs ();
-			Vector3 forward = curDir * multiplier;
-			transform.position = transform.position + (forward * moveSpeed * Time.deltaTime);
-		}
-		if (Input.GetKeyDown (KeyCode.M) ){
-			Application.CaptureScreenshot("bouncy_screen.png");
-		}
+		if (Input.GetKey (KeyCode.W))
+			moveForward = 1;
+		else
+			moveForward = 0;
+		
+		if (Input.GetKey (KeyCode.A))
+			moveLeft = 1;
+		else
+			moveLeft = 0;
+		
+		if (Input.GetKey (KeyCode.S))
+			moveBackward = 1;
+		else
+			moveBackward = 0;
+		
+		if (Input.GetKey (KeyCode.D))
+			moveRight = 1;
+		else
+			moveRight = 0;
+		mouseRot.Set(-Input.GetAxis ("Mouse Y"), Input.GetAxis ("Mouse X"));
 	}
 }
 
